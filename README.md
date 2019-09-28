@@ -19,4 +19,6 @@ Since weights are in Loss function only, add these to the model optimizer as wel
 ```
 for key, value in criterion_xent.named_parameters():
     params += [{"params": [value], "lr": lr, "weight_decay": weight_decay}]
+    
+optimizer = torch.optim.Adam(params)
 ```
