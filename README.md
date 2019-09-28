@@ -12,3 +12,11 @@ features = Model(input)
 criterion_xent = AM_Softmax()
 Loss = criterion_xent(features, labels)
 ```
+
+
+Since weights are in Loss function only, add these to the model optimizer as well.
+
+```
+for key, value in criterion_xent.named_parameters():
+    params += [{"params": [value], "lr": lr, "weight_decay": weight_decay}]
+```
