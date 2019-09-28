@@ -46,6 +46,8 @@ class AM_Softmax(nn.Module):
         self.num_classes = num_classes
 
         self.weight = torch.nn.Linear(d, num_classes, bias=False)
+        if use_gpu:
+            self.weight = self.weight.cuda()
         bound = 1 / math.sqrt(d)
         nn.init.uniform_(self.weight.weight, -bound, bound) 
         self.CrossEntropy = CrossEntropyLabelSmooth(self.num_classes , use_gpu=use_gpu)
