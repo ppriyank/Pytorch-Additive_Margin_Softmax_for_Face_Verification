@@ -2,7 +2,6 @@ import math
 
 import torch
 import torch.nn as nn
-from torch.nn.parameter import Parameter
 
 
 class CrossEntropyLabelSmooth(nn.Module):
@@ -38,17 +37,18 @@ class CrossEntropyLabelSmooth(nn.Module):
         return loss
 
 
+    
 class AM_Softmax(nn.Module):
     def __init__(self, m=0.35, s=30, d=2048, num_classes=625, use_gpu=True , epsilon=0.1):
         super(AM_Softmax, self).__init__()
         self.m = m
         self.s = s 
         self.num_classes = num_classes
-        self.weight = Parameter(torch.Tensor(num_classes, d))
-        bound = 1 / math.sqrt(self.weight.size(1))
-        nn.init.uniform_(self.weight, -bound, bound)
-        
-        self.CrossEntropy = CrossEntropyLabelSmooth(self.num_classes)
+
+        self.weight = torch.nn.Linear(d, num_classes, bias=False)
+        bound = 1 / math.sqrt(d)
+        nn.init.uniform_(self.weight.weight, -bound, bound) 
+        self.CrossEntropy = CrossEntropyLabelSmooth(self.num_classes , use_gpu=use_gpu)
         
     def forward(self, x, labels ):
         '''
@@ -59,14 +59,17 @@ class AM_Softmax(nn.Module):
         # x = torch.rand(32,2048)
         # label = torch.tensor([0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,])
         x = nn.functional.normalize(x, p=2, dim=1) # normalize the features
-        self.weight = nn.functional.normalize(self.weight, p=2, dim=1) # normalize the features
+
+        with torch.no_grad():
+            self.weight.weight.div_(torch.norm(self.weight.weight, dim=1, keepdim=True))
+
         b = x.size(0)
         n = self.num_classes
 
-        cos_angle = torch.mm(x,self.weight.t() )  
+        cos_angle = self.weight(x)
         cos_angle = torch.clamp( cos_angle , min = -1 , max = 1 ) 
         for i in range(b):
-            cos_angle[i][label[i]] = cos_angle[i][label[i]]  - self.m 
+            cos_angle[i][labels[i]] = cos_angle[i][labels[i]]  - self.m 
         weighted_cos_angle = self.s * cos_angle
-        log_probs = self.CrossEntropy(weighted_cos_angle , label)
+        log_probs = self.CrossEntropy(weighted_cos_angle , labels)
         return log_probs
