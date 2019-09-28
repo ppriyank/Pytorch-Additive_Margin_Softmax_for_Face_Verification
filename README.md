@@ -1,0 +1,2 @@
+# Pytorch-Additive_Margin_Softmax_for_Face_Verification
+Pytorch Implementation of AMSoftmax 
