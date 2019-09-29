@@ -7,14 +7,18 @@ https://arxiv.org/pdf/1801.05599.pdf
 
 
 ```
-from AM_Softmax import AM_Softmax
+from AM_Softmax import AM_Softmax_v1 , AM_Softmax_v2
 features = Model(input)
-criterion_xent = AM_Softmax()
+criterion_xent = AM_Softmax_v1()
 Loss = criterion_xent(features, labels)
 ```
+or
+```
+criterion_xent = AM_Softmax_v2()
+Loss = criterion_xent(features ,  labels, model.module.classifier )
+```
 
-
-Since weights are in Loss function only, add these to the model optimizer as well.
+\[Only for V_1\] Since weights are in Loss function only, add these to the model optimizer as well.
 
 ```
 for key, value in criterion_xent.named_parameters():
