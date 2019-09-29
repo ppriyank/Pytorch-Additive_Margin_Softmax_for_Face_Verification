@@ -1,5 +1,5 @@
 # Pytorch-Additive_Margin_Softmax_for_Face_Verification
-Pytorch Implementation of AMSoftmax 
+Pytorch Implementation of AMSoftmax with label smooting 
 
 **Additive Margin Softmax for Face Verification**  
 *Feng Wang, Weiyang Liu, Haijun Liu, Jian Cheng*  
@@ -26,3 +26,7 @@ for key, value in criterion_xent.named_parameters():
     
 optimizer = torch.optim.Adam(params)
 ```
+
+
+If you don't want label smoothing : remove the line 
+`targets = (1 - self.epsilon) * targets + self.epsilon / self.num_classes`
