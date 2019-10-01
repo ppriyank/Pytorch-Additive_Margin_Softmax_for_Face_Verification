@@ -23,7 +23,7 @@ class CrossEntropyLabelSmooth(nn.Module):
         self.use_gpu = use_gpu
         self.logsoftmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, inputs, targets):
+    def forward(self, inputs, targets, use_label_smoothing=True):
         """
         Args:
             inputs: prediction matrix (before softmax) with shape (batch_size, num_classes)
@@ -32,7 +32,8 @@ class CrossEntropyLabelSmooth(nn.Module):
         log_probs = self.logsoftmax(inputs)
         targets = torch.zeros(log_probs.size()).scatter_(1, targets.unsqueeze(1).data.cpu(), 1)
         if self.use_gpu: targets = targets.to(torch.device('cuda'))
-        targets = (1 - self.epsilon) * targets + self.epsilon / self.num_classes
+        if use_label_smoothing:
+            targets = (1 - self.epsilon) * targets + self.epsilon / self.num_classes
         loss = (- targets * log_probs).mean(0).sum()
         return loss
 
@@ -104,7 +105,7 @@ class AM_Softmax_v2(nn.Module): #requires classification layer for normalization
         for i in range(b):
             cos_angle[i][labels[i]] = cos_angle[i][labels[i]]  - self.m 
         weighted_cos_angle = self.s * cos_angle
-        log_probs = self.CrossEntropy(weighted_cos_angle , labels)
+        log_probs = self.CrossEntropy(weighted_cos_angle , labels, use_label_smoothing=True)
         return log_probs
 
 
